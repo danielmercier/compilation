@@ -1,0 +1,16 @@
+mips.cmi :
+mips.cmo : mips.cmi
+mips.cmx : mips.cmi
+ast.cmi :
+error.cmo : ast.cmi
+error.cmx : ast.cmi
+interpreter.cmo : error.cmo ast.cmi
+interpreter.cmx : error.cmx ast.cmi
+parser.cmo : ast.cmi parser.cmi
+parser.cmx : ast.cmi parser.cmi
+compile.cmo : mips.cmi ast.cmi
+compile.cmx : mips.cmx ast.cmi
+main.cmo : parser.cmi mips.cmi lexer.cmo interpreter.cmo error.cmo \
+    compile.cmo
+main.cmx : parser.cmx mips.cmx lexer.cmx interpreter.cmx error.cmx \
+    compile.cmx
