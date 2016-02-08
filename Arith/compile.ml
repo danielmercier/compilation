@@ -63,11 +63,27 @@ let rec compile_expr e =
       @@ pop a0
       @@ sub a0 zero oreg a0
       @@ push a0
+    | Ebinop (op, e1, e2) ->
+      (*On évalue d'abord ce qu'il y à a droite puis ce qu'il y a à gauche*)
+      let e_code1 = compile_expr e2
+      and e_code2 = compile_expr e1
+      and fop op =
+        pop a0
+        @@ pop a1
+        @@ op a0 a0 oreg a1
+        @@ push a0
+      in 
+      e_code1
+      @@ e_code2
+      @@ match op with
+           | Badd -> fop add
+           | Bsub -> fop sub
+           | Bmul -> fop mul
+           | Bdiv -> fop div
       
 (* Les instructions sont calculées l'une après l'autre. *)
 let rec compile_instr_list il =
-  List.fold_left (fun (acc, elem) -> 
-    match elem with
+  List.fold_left (fun acc -> function
     | Icompute e -> acc @@ (compile_expr e)
   )
   nop
@@ -78,15 +94,14 @@ let rec compile_instr_list il =
 (* Fragments de code pour [print_int] et [print_newline]. *)
 let built_ins () =
   label "print_newline"
-  @@ pop a0
+  @@ li a0 10
   @@ li v0 11
   @@ syscall
-  @@ push a0
   @@ jr ra
 
   @@ label "print_int"
   @@ pop a0
-  @@ li v0 11
+  @@ li v0 1
   @@ syscall
   @@ push a0
   @@ jr ra
