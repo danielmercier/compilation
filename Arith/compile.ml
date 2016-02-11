@@ -102,15 +102,18 @@ let rec compile_instr_list il =
 (* Fragments de code pour [print_int] et [print_newline]. *)
 let built_ins () =
   label "print_newline"
+  @@ pop zero
   @@ li a0 10 (* 10 correspond au code ascii de \n *)
   @@ li v0 11 (* Appel systeme pour afficher un caratere *)
   @@ syscall
+  @@ push zero
   @@ jr ra
 
   @@ label "print_int"
   @@ pop a0
   @@ li v0 1 (* Appel systeme pour afficher un entier *)
   @@ syscall
+  @@ push zero
   @@ jr ra
     
 (* La compilation du programme produit un code en trois parties :
