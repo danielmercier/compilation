@@ -43,6 +43,7 @@ let rec compile_expr e =
         match c with
 	    | Cunit       -> push zero
         | Cint i      -> 
+          (* Si on voit un entier, on le met sur le sommet de la pile *)
           li a0 i
           @@ push a0
       end
@@ -51,6 +52,8 @@ let rec compile_expr e =
        fragment de code gérant l'affichage proprement dit. *)
     | Eprint_newline e ->
       let e_code = compile_expr e in
+      (* Il faudrai faire du typage pour voir que e es bien unit
+       * On peut aussi tester si e = Cunit *)
       e_code
       @@ jal "print_newline"
     | Eprint_int e ->
@@ -60,13 +63,16 @@ let rec compile_expr e =
     | Eunop (Uminus, e) ->
       let e_code = compile_expr e in
       e_code
+      (* Ce code prend l'entier en sommet de pile et empile son oppose *)
       @@ pop a0
       @@ sub a0 zero oreg a0
       @@ push a0
     | Ebinop (op, e1, e2) ->
-      (*On évalue d'abord ce qu'il y à a droite puis ce qu'il y a à gauche*)
+      (* On évalue d'abord ce qu'il y à a droite puis ce qu'il y a à gauche *)
       let e_code1 = compile_expr e2
       and e_code2 = compile_expr e1
+      (* Fonction qui prend un operateur mips et applique l'operateur
+       * aux deux entiers au sommet de la pile et empile le resultat *)
       and fop op =
         pop a0
         @@ pop a1
@@ -75,6 +81,7 @@ let rec compile_expr e =
       in 
       e_code1
       @@ e_code2
+      (* On appel fop avec le bonne operateur selon le type somme *)
       @@ match op with
            | Badd -> fop add
            | Bsub -> fop sub
@@ -83,31 +90,28 @@ let rec compile_expr e =
       
 (* Les instructions sont calculées l'une après l'autre. *)
 let rec compile_instr_list il =
-  List.fold_left (fun acc -> function
-    | Icompute e -> acc @@ (compile_expr e)
-  )
-  nop
-  il
-
+  (* On parcourt la liste de gauche a droite en ecrivant
+   * a chaque fois la nouvelle expressione en mips *)
+  List.fold_left 
+    (fun acc -> function
+        | Icompute e -> acc @@ (compile_expr e))
+    nop
+    il
 
       
 (* Fragments de code pour [print_int] et [print_newline]. *)
 let built_ins () =
   label "print_newline"
-  @@ li a0 10
-  @@ li v0 11
+  @@ li a0 10 (* 10 correspond au code ascii de \n *)
+  @@ li v0 11 (* Appel systeme pour afficher un caratere *)
   @@ syscall
   @@ jr ra
 
   @@ label "print_int"
   @@ pop a0
-  @@ li v0 1
+  @@ li v0 1 (* Appel systeme pour afficher un entier *)
   @@ syscall
-  @@ push a0
   @@ jr ra
-
-
-
     
 (* La compilation du programme produit un code en trois parties :
    1/ Le code principal (label "main")
