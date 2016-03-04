@@ -4,13 +4,13 @@
 # a.ml, a.ml doit se trouver avant dans la liste.
 #
 
-SOURCES = mips.mli mips.ml ast.mli error.ml interpreter.ml \
-	  parser.mly lexer.mll compile.ml main.ml
+SOURCES = mips.mli mips.ml ast.ml error.ml interpreter.ml \
+	  parser.mly lexer.mll allocation.ml compile.ml main.ml
 
 # Répertoires contenant les tests
 
-TEST_DIRECTORIES = print arith
-TEST_DIRECTORIES_INTERPRET = print arith
+TEST_DIRECTORIES = print arith if while seq let letin
+TEST_DIRECTORIES_INTERPRET = print arith if while seq let letin
 
 # Nom du binaire
 
@@ -152,7 +152,7 @@ clean_test:
 	rm -f $(TEST_ASM)
 
 
-depend:
-	$(CAMLDEP) $(SMLIY) > .depend
+depend: $(SMLIY)
+	$(CAMLDEP) $(SMLIY) $(SMLIY:.mly:.mli) > .depend
 
 -include .depend

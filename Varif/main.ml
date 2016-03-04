@@ -30,7 +30,8 @@ let () =
     close_in c;
     if !compile
     then begin
-      let prog = Compile.compile_prog p in
+      let alloc_prog = Allocation.allocation_prog p in
+      let prog = Compile.compile_prog alloc_prog in
       let output_file = (Filename.chop_suffix file ".ml") ^ ".asm" in
       let out = open_out output_file in
       let outf = formatter_of_out_channel out in
