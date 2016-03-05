@@ -26,7 +26,9 @@
            ("done", DONE);
            ("do", DO);
            ("let", LET);
-           ("in", IN)
+           ("in", IN);
+           ("for", FOR);
+           ("to", TO)
           ]
 }
 

@@ -29,7 +29,7 @@
 %token RPAREN
 %token MINUS PLUS SLASH STAR UMINUS
 %token IF THEN ELSE
-%token WHILE DO DONE
+%token FOR TO WHILE DO DONE
 %token TRUE FALSE
 %token NOT AND OR
 %token LT LE GT GE
