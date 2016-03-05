@@ -46,7 +46,9 @@ let rec allocation_expr nxt_local env expr =
         let newecond = allocation_expr nxt_local env econd in
         let newethen = allocation_expr nxt_local env ethen in
         let neweelse = allocation_expr nxt_local env eelse in
-        mk_node (Eif (newecond, newethen, neweelse)) (allocate_local nxt_local)
+        mk_node
+            (Eif (newecond, newethen, neweelse))
+            (allocate_local nxt_local)
 
     | Ewhile (econd, e) ->
         let newecond = allocation_expr nxt_local env econd in

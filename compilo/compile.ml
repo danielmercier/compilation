@@ -135,8 +135,8 @@ let rec compile_expr expr =
           | Register reg -> 
             li reg i
           | Memory (offset, reg) ->
-            li a0 i
-            @@ sw a0 areg (offset, reg))
+            li v0 i
+            @@ sw v0 areg (offset, reg))
         | Cbool b ->
           let i = 
             if b
@@ -147,8 +147,8 @@ let rec compile_expr expr =
           | Register reg -> 
             li reg i
           | Memory (offset, reg) ->
-            li a0 i
-            @@ sw a0 areg (offset, reg))
+            li v0 i
+            @@ sw v0 areg (offset, reg))
       end
 
     | Eident id -> 
@@ -162,20 +162,20 @@ let rec compile_expr expr =
       (* Il faudrai faire du typage pour voir que e es bien unit
        * On peut aussi tester si e = Cunit *)
       e_code
-      @@ to_stack e.info
+      @@ to_register e.info a0
       @@ jal "print_newline"
-      @@ from_stack expr.info
+      @@ from_register v0 expr.info
 
     | Eprint_int e ->
       let e_code = compile_expr e in
       e_code
-      @@ to_stack e.info
+      @@ to_register e.info a0
       @@ jal "print_int"
-      @@ from_stack expr.info
+      @@ from_register v0 expr.info
 
     | Eunop (Uminus, e) ->
       let e_code = compile_expr e in
-      let (reg, code) = reg_for_op a0 e.info in
+      let (reg, code) = reg_for_op v0 e.info in
       e_code
       @@ code
       @@ sub reg zero oreg reg
@@ -183,8 +183,8 @@ let rec compile_expr expr =
 
     | Eunop (Unot, e) ->
       let e_code = compile_expr e in
-      let (reg, code) = reg_for_op a0 e.info in
-      let regres = is_reg a0 expr.info in
+      let (reg, code) = reg_for_op v0 e.info in
+      let regres = is_reg v0 expr.info in
       e_code
       (* Ce code prend l'entier a la bonne localisation et rend 1 - l'entier
        puisque 1 = true et 0 = false *)
@@ -207,9 +207,9 @@ let rec compile_expr expr =
           (* Fonction qui prend un operateur mips et applique l'operateur
            * aux deux entiers aux bonnes localisation *)
           let fop op =
-            let (reg1, code1) = reg_for_op a0 e1.info in
-            let (reg2, code2) = reg_for_op a1 e2.info in
-            let reg3 = is_reg a0 expr.info in
+            let (reg1, code1) = reg_for_op v0 e1.info in
+            let (reg2, code2) = reg_for_op v1 e2.info in
+            let reg3 = is_reg v0 expr.info in
             code1
             @@ code2
             @@ op reg3 reg1 oreg reg2
@@ -230,8 +230,8 @@ let rec compile_expr expr =
         | Band ->
           let label1 = new_label ()
           and label2 = new_label () in
-          let (reg1, code1) = reg_for_op a0 e1.info in
-          let reg2 = is_reg a0 expr.info in
+          let (reg1, code1) = reg_for_op v0 e1.info in
+          let reg2 = is_reg v0 expr.info in
           e_code1
           (* On vérifie si le booleen a la localisation expr.info = 0
            dans ce cas, on passe de suite a la suite sans evaluer
@@ -250,8 +250,8 @@ let rec compile_expr expr =
         | Bor -> 
           let label1 = new_label ()
           and label2 = new_label () in
-          let (reg1, code1) = reg_for_op a0 e1.info in
-          let reg2 = is_reg a0 expr.info in
+          let (reg1, code1) = reg_for_op v0 e1.info in
+          let reg2 = is_reg v0 expr.info in
           e_code1
           (* On vérifie si le booleen a la localisation expr.info = 1
            dans ce cas, on passe de suite a la suite sans evaluer
@@ -272,15 +272,15 @@ let rec compile_expr expr =
           and label2 = new_label () in
           (* cette fonction fait un branchement selon la comparaison op *)
           let fop op =
-            let (reg1, code1) = reg_for_op a0 e1.info in
+            let (reg1, code1) = reg_for_op v0 e1.info in
             let (reg2, code2) = reg_for_op a1 e2.info in
-            let regres = is_reg a0 expr.info in
+            let regres = is_reg v0 expr.info in
             code1
             @@ code2
             (* On fait la soustraction pour comparer a zéro *)
-            @@ sub a0 reg1 oreg reg2
+            @@ sub v0 reg1 oreg reg2
             (* On compare avec op et on branche si vrai *)
-            @@ op a0 label1
+            @@ op v0 label1
             (* Si faux on met 0 *)
             @@ li regres 0
             @@ from_register regres expr.info
@@ -310,7 +310,7 @@ let rec compile_expr expr =
       and efalse_code = compile_expr efalse
       and label1 = new_label ()
       and label2 = new_label () in
-      let (regcond, codecond) = reg_for_op a0 cond.info in
+      let (regcond, codecond) = reg_for_op v0 cond.info in
       (* On execute le code de la condition *)
       cond_code
       (* On test si la condition est egal a zero, le cas echeant on jump
@@ -331,7 +331,7 @@ let rec compile_expr expr =
       and e_code = compile_expr e
       and label1 = new_label ()
       and label2 = new_label () in
-      let (reg, code) = reg_for_op a0 cond.info in
+      let (reg, code) = reg_for_op v0 cond.info in
       label label1
       (* On execute le code de la condition *)
       @@ cond_code
@@ -405,20 +405,20 @@ let rec compile_instr_list nb_glob nb_loc il =
   code
       
 (* Fragments de code pour [print_int] et [print_newline]. *)
+(* on utilise pas la pile pour l'appel de fonction *)
 let built_ins () =
   label "print_newline"
-  @@ pop zero
   @@ li a0 10 (* 10 correspond au code ascii de \n *)
   @@ li v0 11 (* Appel systeme pour afficher un caratere *)
   @@ syscall
-  @@ push zero
+  @@ move v0 zero
   @@ jr ra
 
+  (* La valeur a afficher est dans a0 *)
   @@ label "print_int"
-  @@ pop a0
   @@ li v0 1 (* Appel systeme pour afficher un entier *)
   @@ syscall
-  @@ push zero
+  @@ move v0 zero
   @@ jr ra
     
 (* La compilation du programme produit un code en trois parties :
