@@ -21,6 +21,7 @@ and 'info expr_node =
   | Ebinop  of binop       * 'info expr   * 'info expr
   | Eif     of 'info expr  * 'info expr   * 'info expr
   | Ewhile  of 'info expr  * 'info expr
+  | Efor    of ident       * 'info expr   * 'info expr   * 'info expr
   | Eletin  of ident * 'info expr   * 'info expr
   | Eseq    of 'info expr list * 'info expr
   | Eprint_int of 'info expr

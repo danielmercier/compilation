@@ -161,10 +161,14 @@ expr:
 | LET ident AFFECT expr IN expr %prec LET_IN
     { mk_node (Eletin ($2, $4, $6)) }
     
-
 /*Ajout du while*/
 | WHILE expr DO expr DONE
     { mk_node (Ewhile ($2, $4)) }
+
+/*Ajout de for*/
+| FOR ident AFFECT expr TO expr DO expr DONE
+    { mk_node (Efor ($2, $4, $6, $8)) }
+
 
 /*Séparateur d'expressions*/
 | expr SEMICOLON expr_seq { 
