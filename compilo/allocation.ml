@@ -66,7 +66,7 @@ let rec allocation_expr nxt_local env expr =
                 doo
         in
         mk_node
-            (Efor (id, newefrom, newetoo, newedoo))
+            (Efor (id, movefrom, newetoo, newedoo))
             (allocate_local nxt_local)
 
     | Eletin (id, eassign, e) ->
