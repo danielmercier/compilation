@@ -162,14 +162,12 @@ let rec compile_expr expr =
       (* Il faudrai faire du typage pour voir que e es bien unit
        * On peut aussi tester si e = Cunit *)
       e_code
-      @@ to_register e.info a0
       @@ jal "print_newline"
       @@ from_register v0 expr.info
 
     | Eprint_int e ->
       let e_code = compile_expr e in
       e_code
-      @@ to_register e.info a0
       @@ jal "print_int"
       @@ from_register v0 expr.info
 
@@ -393,6 +391,11 @@ let rec compile_expr expr =
       (* On stock la valeur de e_code2 dans un registre pour replacer
        sp *)
       @@ from_loc_to e2.info expr.info
+
+    | Expr e ->
+      let e_code = compile_expr e in
+      e_code
+      @@ from_loc_to e.info expr.info
 
 (* Les instructions sont calculées l'une après l'autre. *)
 let rec compile_instr_list nb_glob nb_loc il =

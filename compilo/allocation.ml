@@ -78,7 +78,9 @@ let rec allocation_expr nxt_local env expr =
                 (Env.add id (allocate_local nxt_local) env)
                 e
         in
-        mk_node (Eletin (id, newassign, newe)) (allocate_local nxt_local)
+        (* Expr permet de bouger le resultat de newassign où on veut *)
+        let move = mk_node (Expr newassign) (allocate_local nxt_local) in
+        mk_node (Eletin (id, move, newe)) (allocate_local nxt_local)
 
     | Eseq (el, last) ->
         mk_node 
@@ -89,11 +91,15 @@ let rec allocation_expr nxt_local env expr =
 
     | Eprint_int e ->
         let newe = allocation_expr nxt_local env e in 
-        mk_node (Eprint_int newe) (allocate_local nxt_local)
+        let move = mk_node (Expr newe) (Register a0) in
+        mk_node (Eprint_int move) (allocate_local nxt_local)
 
     | Eprint_newline e ->
         let newe = allocation_expr nxt_local env e in 
-        mk_node (Eprint_newline newe) (allocate_local nxt_local)
+        let move = mk_node (Expr newe) (Register a0) in
+        mk_node (Eprint_newline move) (allocate_local nxt_local)
+
+    | Expr _ -> (* IMPOSSIBLE, le parser ne génère pas Expr *) assert false
 
 let allocation_prog =
     let env = ref (Env.empty)
@@ -104,14 +110,10 @@ let allocation_prog =
             let newe = allocation_expr 0 !env e in
             Icompute newe
         | Ilet (id, e) ->
-            let { node = node; info = info } = 
+            let newe = 
                 allocation_expr 0 !env e
             in
-            let newe = 
-                {node = node;
-                 info = allocate_global !nxt_global;
-                }
-            in
+            let move = mk_node (Expr newe) (allocate_global !nxt_global) in
             env := Env.add id (allocate_global !nxt_global) !env;
             incr nxt_global;
-            Ilet (id, newe))
+            Ilet (id, move))

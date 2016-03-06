@@ -27,6 +27,10 @@ and 'info expr_node =
   | Eprint_int of 'info expr
   | Eprint_newline of 'info expr
 
+  (* Une expression. Ce noeud sert dans l'allocation, si on veut changer la
+   localisation d'une expression *)
+  | Expr of 'info expr
+
 type 'info instr =
   | Icompute of 'info expr
   | Ilet     of ident * 'info expr
