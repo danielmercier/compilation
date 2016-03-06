@@ -55,6 +55,20 @@ let rec allocation_expr nxt_local env expr =
         let newe = allocation_expr nxt_local env e in
         mk_node (Ewhile (newecond, newe)) (allocate_local nxt_local)
 
+    | Efor (id, from, too, doo) ->
+        let newefrom = allocation_expr nxt_local env from in
+        let movefrom = mk_node (Expr newefrom) (allocate_local nxt_local) in
+        let newetoo = allocation_expr (nxt_local + 1) env too in
+        let newedoo =
+            allocation_expr
+                (nxt_local + 2)
+                (Env.add id (allocate_local nxt_local) env)
+                doo
+        in
+        mk_node
+            (Efor (id, newefrom, newetoo, newedoo))
+            (allocate_local nxt_local)
+
     | Eletin (id, eassign, e) ->
         let newassign = 
             allocation_expr nxt_local env eassign in

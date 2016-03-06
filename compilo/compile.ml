@@ -349,6 +349,27 @@ let rec compile_expr expr =
        on met zero *)
       @@ from_register zero expr.info
 
+    | Efor (id, from, too, doo) ->
+      let label_begin = new_label () in
+      let label_end = new_label () in
+      let e_from = compile_expr from in
+      let e_to = compile_expr too in
+      let e_do = compile_expr doo in
+      let (regf, code_from) = reg_for_op v0 from.info in
+      let (regt, code_to) = reg_for_op v1 too.info in
+      e_from
+      @@ e_to
+      @@ code_from
+      @@ code_to
+      @@ label label_begin
+      @@ sub a0 regf oreg regt
+      @@ bgtz a0 label_end
+      @@ e_do
+      @@ add regf regf oi 1
+      @@ b label_begin
+      @@ label label_end
+      @@ from_loc_to doo.info expr.info
+
     | Eseq (liste, elast) ->
       List.fold_left
         (fun acc expr ->
