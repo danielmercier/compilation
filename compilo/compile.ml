@@ -363,7 +363,9 @@ let rec compile_expr expr =
       @@ sub a0 regf oreg regt
       @@ bgtz a0 label_end
       @@ e_do
+      @@ code_from
       @@ add regf regf oi 1
+      @@ from_register regf from.info
       @@ b label_begin
       @@ label label_end
       @@ from_loc_to doo.info expr.info
