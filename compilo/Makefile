@@ -9,8 +9,8 @@ SOURCES = mips.mli mips.ml ast.ml error.ml interpreter.ml \
 
 # Répertoires contenant les tests
 
-TEST_DIRECTORIES = print arith if while seq let letin
-TEST_DIRECTORIES_INTERPRET = print arith if while seq let letin
+TEST_DIRECTORIES = print arith if while seq let letin for
+TEST_DIRECTORIES_INTERPRET = print arith if while seq let letin for
 
 # Nom du binaire
 
